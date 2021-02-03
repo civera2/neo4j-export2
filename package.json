@@ -1,0 +1,46 @@
+{
+  "name": "githubanalytic",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "serve": "vue-cli-service serve",
+    "build": "vue-cli-service build",
+    "lint": "vue-cli-service lint"
+  },
+  "dependencies": {
+    "@playlyfe/gql": "^2.6.2",
+    "apollo-boost": "^0.4.9",
+    "chart.js": "^2.9.3",
+    "core-js": "^3.6.4",
+    "doc-similarity": "0.0.1",
+    "eslint-plugin-graphql": "^4.0.0",
+    "firebase": "^8.0.0",
+    "json2csv": "^5.0.0",
+    "material-design-icons-iconfont": "^6.1.0",
+    "moment": "^2.29.0",
+    "polarity": "^3.0.4",
+    "vue": "^2.6.12",
+    "vue-apollo": "^3.0.4",
+    "vue-chartjs": "^3.5.0",
+    "vue-neo4j": "^0.4.5",
+    "vue-router": "^3.4.3",
+    "vuetify": "^2.3.8"
+  },
+  "devDependencies": {
+    "@mdi/font": "^5.8.55",
+    "@mdi/js": "^5.8.55",
+    "@vue/cli-plugin-babel": "^4.5.3",
+    "@vue/cli-plugin-eslint": "^4.5.3",
+    "@vue/cli-service": "^4.5.3",
+    "babel-eslint": "^10.1.0",
+    "eslint": "^6.8.0",
+    "eslint-plugin-vue": "^7.0.0",
+    "graphql-tag": "^2.11.0",
+    "sass": "^1.28.0",
+    "sass-loader": "^10.0.1",
+    "vue-cli-plugin-apollo": "^0.22.2",
+    "vue-cli-plugin-vuetify": "^2.0.5",
+    "vue-template-compiler": "^2.6.12",
+    "vuetify-loader": "^1.6.0"
+  }
+}

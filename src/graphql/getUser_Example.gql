@@ -1,0 +1,15 @@
+query($login: String!) {
+  user(login: $login) {
+    repositories(first: 100) {
+      edges {
+        node {
+          name
+          nameWithOwner
+          createdAt
+          isPrivate
+          description
+        }
+      }
+    }
+  }
+}
