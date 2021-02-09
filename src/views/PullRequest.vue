@@ -235,6 +235,7 @@ export default {
       ],
       cohesionGrupal: "",
       getComuna: "",
+      ListaMatrix: [],
     };
   },
   apollo: {
@@ -267,13 +268,13 @@ export default {
       participantes.push(element.login);
        //participants.push(element.id);
        });*/
-      console.log("matriz",this.countMatrix);
+      //console.log("matriz",this.countMatrix);
       for (let i = 0; i < cantPersonas; i++) {
         var emisor = participantes.nodes[i].login;
         for (let j = 0; j < cantPersonas; j++) {
           
           var receptor = participantes.nodes[j].login;
-          console.log("matriz",matriz[i][j],"emisor",emisor,"receptor",receptor);
+          //console.log("matriz",matriz[i][j],"emisor",emisor,"receptor",receptor);
           for (let k = 0; k < matriz[i][j]; k++) {
             //var emisor = participantes.nodes[i].login;
             //var receptor = participantes.nodes[j].login;
@@ -523,7 +524,7 @@ export default {
         .then(() => {
           if (this.repository.pullRequest.participants.totalCount > 1) {
             //Llamo a hacer el conteo de Interacciones
-            this.countMatrix = matrizConteoPR(this.repository.pullRequest);
+            this.countMatrix = matrizConteoPR(this.repository.pullRequest, this.ListaMatrix);
             //LLamo a generar las estadisticas en base al conteo
             this.estadisticasPR();
           } else {

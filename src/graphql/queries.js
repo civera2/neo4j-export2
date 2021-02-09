@@ -68,6 +68,7 @@ export const GET_REPO = gql`
             user {
               login
             }
+            createdAt
           }
         }
         participants(first: 100) {
@@ -99,14 +100,15 @@ export const GET_REPO = gql`
               nodes {
                 body
                 bodyHTML
+                createdAt
                 author {
                   login
                   avatarUrl
                 }
-                createdAt
                 reactions(first: 15) {
                   totalCount
                   nodes {
+                    createdAt
                     user {
                       login
                     }
@@ -128,6 +130,7 @@ export const GET_REPO = gql`
             reactions(first: 50) {
               totalCount
               nodes {
+                createdAt
                 user {
                   login
                 }
