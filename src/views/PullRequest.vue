@@ -420,6 +420,44 @@ export default {
         );
       }
     },
+    agregarID() {
+      //Esta funcion agrega los ID faltantes al JSON de la consulta
+      this.repository.pullRequest.participants.nodes.forEach((participant) => {
+        if (participant.login == this.repository.pullRequest.author.login){
+          this.repository.pullRequest.author.id = participant.id
+        }
+      });
+      //agregamos id a los autores de Comentarios
+      for (let c = 0; c < this.repository.pullRequest.comments.totalCount; c++) {
+        let encontrado = false;
+        let index = 0;
+        while (!encontrado) {
+          if (this.repository.pullRequest.participants.nodes[index].login == this.repository.pullRequest.comments.nodes[c].author.login) {
+            this.repository.pullRequest.comments.nodes[c].author.id = this.repository.pullRequest.participants.nodes[index].id
+            encontrado = true;
+          } else if (index == this.repository.pullRequest.participants.totalCount) {
+            encontrado = true;
+          }
+          index++;
+        }
+      }
+      //agregamos id a los autores de Reviews
+      for (let i = 0; i < this.repository.pullRequest.reviewThreads.totalCount; i++) {
+        for (let c = 0; c < this.repository.pullRequest.reviewThreads.nodes[i].comments.totalCount; c++) {
+          let encontrado = false;
+          let index = 0;
+          while (!encontrado) {
+            if (this.repository.pullRequest.participants.nodes[index].login == this.repository.pullRequest.reviewThreads.nodes[i].comments.nodes[c].author.login) {
+              this.repository.pullRequest.reviewThreads.nodes[i].comments.nodes[c].author.id = this.repository.pullRequest.participants.nodes[index].id
+              encontrado = true;
+            } else if (index == this.repository.pullRequest.participants.totalCount) {
+              encontrado = true;
+            }
+            index++;
+          }
+        }
+      }
+    },
     chartDataCoheGrupal() {
       //Obtengo la cohesión grupal
       let cohesionGrupal = 0;
@@ -523,6 +561,8 @@ export default {
         })
         .then(() => {
           if (this.repository.pullRequest.participants.totalCount > 1) {
+            //Agrego informacion de IDs faltantes en el PR
+            this.agregarID();
             //Llamo a hacer el conteo de Interacciones
             this.countMatrix = matrizConteoPR(this.repository.pullRequest, this.ListaMatrix);
             //LLamo a generar las estadisticas en base al conteo

@@ -67,6 +67,7 @@ export const GET_REPO = gql`
           nodes {
             user {
               login
+              id
             }
             createdAt
           }
@@ -94,6 +95,7 @@ export const GET_REPO = gql`
           }
         }
         reviewThreads(first: 50) {
+          totalCount
           nodes {
             comments(first: 20) {
               totalCount
@@ -111,6 +113,7 @@ export const GET_REPO = gql`
                     createdAt
                     user {
                       login
+                      id
                     }
                   }
                 }
@@ -119,6 +122,7 @@ export const GET_REPO = gql`
           }
         }
         comments(first: 100) {
+          totalCount
           nodes {
             body
             bodyHTML
@@ -133,6 +137,7 @@ export const GET_REPO = gql`
                 createdAt
                 user {
                   login
+                  id
                 }
               }
             }
