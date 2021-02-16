@@ -193,6 +193,7 @@ export default {
       pullRequests: [],
       repository: "",
       estadisticas: [],
+      ListaMatrix: [],
       chartCoheGrupal: {
         labels: [],
         datasets: [
@@ -381,6 +382,47 @@ export default {
       if (this.cancel) this.colorCancel = "error";
       else this.colorCancel = "warning";
     },
+    exportarNeo4j(pullRequest) {
+      //const session = this.$neo4j.getSession();
+      var matriz = this.countMatrix;
+      var participantes = pullRequest.participants;
+      var cantPersonas = pullRequest.participants.totalCount;
+      var id= pullRequest.id;
+      var url= pullRequest.url;
+
+      //let participantes = new Array();
+      /*pullRequest.participants.nodes.forEach(function(element) {
+      participantes.push(element.login);
+       //participants.push(element.id);
+       });*/
+      //console.log("matriz",this.countMatrix);
+      for (let i = 0; i < cantPersonas; i++) {
+        var emisor = participantes.nodes[i].login;
+        for (let j = 0; j < cantPersonas; j++) {
+          
+          var receptor = participantes.nodes[j].login;
+          //console.log("matriz",matriz[i][j],"emisor",emisor,"receptor",receptor);
+          for (let k = 0; k < matriz[i][j]; k++) {
+            //var emisor = participantes.nodes[i].login;
+            //var receptor = participantes.nodes[j].login;
+            if(matriz[i][j]!=0){const session = this.$neo4j.getSession();
+            session
+              /*.run(
+                "Create (a:Participante{id:$name})-[:INTERACTUA]->(b:Participante{id:$name2})",{ name: emisor, name2: receptor }
+              )*/
+              .run("OPTIONAL MATCH (a:Participante),(b:Participante) WHERE a.id = $name AND   b.id=$name2 CREATE (a)-[r:INTERACTUA{id:$id,url:$url}]->(b) RETURN a,b", { name: emisor, name2: receptor,id:id,url:url})
+              .then((res) => {
+                //console.log(res.records[0].get("n.nombre"));
+                console.log("Nodo creado", res);
+              })
+              //.then(() => {
+              //  session.close();
+              //});
+            }
+          }
+        }
+      }
+    },
     getEstadisticas(pullRequest) {
       try {
         var cantPersonas = pullRequest.participants.totalCount;
@@ -505,6 +547,7 @@ export default {
         autor: author,
       };
       this.estadisticas.push(estadisticaPR);
+      this.exportarNeo4j(pullRequest);
     },
     chartsDataGrupal() {
       //Obtengo la cohesión grupal
@@ -543,6 +586,44 @@ export default {
       this.chartTonoGrupal.labels[0] = tonoGrupal.toFixed(2) + "%";
       this.chartTonoGrupal.datasets[0].data[0] = tonoGrupal;
       this.chartTonoGrupal.datasets[0].data[1] = 100 - tonoGrupal;
+    },
+    agregarID(pullRequest) {
+      //Esta funcion agrega los ID faltantes al JSON de la consulta
+      pullRequest.participants.nodes.forEach((participant) => {
+        if (participant.login == pullRequest.author.login){
+          pullRequest.author.id = participant.id
+        }
+      });
+      //agregamos id a los autores de Comentarios
+      for (let c = 0; c < pullRequest.comments.totalCount; c++) {
+        let encontrado = false;
+        let index = 0;
+        while (!encontrado) {
+          if (pullRequest.participants.nodes[index].login == pullRequest.comments.nodes[c].author.login) {
+            pullRequest.comments.nodes[c].author.id = pullRequest.participants.nodes[index].id
+            encontrado = true;
+          } else if (index == pullRequest.participants.totalCount) {
+            encontrado = true;
+          }
+          index++;
+        }
+      }
+      //agregamos id a los autores de Reviews
+      for (let i = 0; i < pullRequest.reviewThreads.totalCount; i++) {
+        for (let c = 0; c < pullRequest.reviewThreads.nodes[i].comments.totalCount; c++) {
+          let encontrado = false;
+          let index = 0;
+          while (!encontrado) {
+            if (pullRequest.participants.nodes[index].login == pullRequest.reviewThreads.nodes[i].comments.nodes[c].author.login) {
+              pullRequest.reviewThreads.nodes[i].comments.nodes[c].author.id = pullRequest.participants.nodes[index].id
+              encontrado = true;
+            } else if (index == pullRequest.participants.totalCount) {
+              encontrado = true;
+            }
+            index++;
+          }
+        }
+      }
     },
     getRepoPRcant(search) {
       var self = this;
@@ -781,7 +862,10 @@ export default {
             //Calculo la matriz de conteo y estadisticas para cada PR
             self.estadisticas = [];
             self.pullRequests.forEach((PR) => {
-              self.countMatrix = matrizConteoPR(PR);
+              //Agrego informacion de IDs faltantes en el PR
+              self.agregarID(PR);
+              console.log(PR);
+              self.countMatrix = matrizConteoPR(PR, self.ListaMatrix);
               self.getEstadisticas(PR);
             });
             //llamo a crear la tabla de estadisticas de cada persona
