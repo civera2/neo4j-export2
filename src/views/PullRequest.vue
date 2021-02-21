@@ -226,6 +226,7 @@ export default {
         ],
       },
       estadisticas: [],
+      saltarPR: false,
       encabezados: [
         { text: "Participante", sortable: false, value: "nombre" },
         { text: "Interacciones Enviadas", value: "msjEnviados" },
@@ -391,7 +392,6 @@ export default {
           };
           this.estadisticas.push(tabla);
         }
-        this.exportarNeo4j();
         //Doy formato a las gráficas
         this.chartDataCoheGrupal();
         this.chartDataColabGrupal();
@@ -420,42 +420,52 @@ export default {
         );
       }
     },
-    agregarID() {
-      //Esta funcion agrega los ID faltantes al JSON de la consulta
-      this.repository.pullRequest.participants.nodes.forEach((participant) => {
-        if (participant.login == this.repository.pullRequest.author.login){
-          this.repository.pullRequest.author.id = participant.id
-        }
-      });
-      //agregamos id a los autores de Comentarios
-      for (let c = 0; c < this.repository.pullRequest.comments.totalCount; c++) {
+    agregarID(pullRequest) {
+      try{
+        //Esta funcion agrega los ID faltantes al JSON de la consulta
         let encontrado = false;
         let index = 0;
         while (!encontrado) {
-          if (this.repository.pullRequest.participants.nodes[index].login == this.repository.pullRequest.comments.nodes[c].author.login) {
-            this.repository.pullRequest.comments.nodes[c].author.id = this.repository.pullRequest.participants.nodes[index].id
+          if (pullRequest.participants.nodes[index].login == pullRequest.author.login){
+            pullRequest.author.id = pullRequest.participants.nodes[index].id;
             encontrado = true;
-          } else if (index == this.repository.pullRequest.participants.totalCount) {
+          } else if (index == pullRequest.participants.totalCount){
             encontrado = true;
           }
           index++;
         }
-      }
-      //agregamos id a los autores de Reviews
-      for (let i = 0; i < this.repository.pullRequest.reviewThreads.totalCount; i++) {
-        for (let c = 0; c < this.repository.pullRequest.reviewThreads.nodes[i].comments.totalCount; c++) {
+        //agregamos id a los autores de Comentarios
+        for (let c = 0; c < pullRequest.comments.totalCount; c++) {
           let encontrado = false;
           let index = 0;
           while (!encontrado) {
-            if (this.repository.pullRequest.participants.nodes[index].login == this.repository.pullRequest.reviewThreads.nodes[i].comments.nodes[c].author.login) {
-              this.repository.pullRequest.reviewThreads.nodes[i].comments.nodes[c].author.id = this.repository.pullRequest.participants.nodes[index].id
+            if (pullRequest.participants.nodes[index].login == pullRequest.comments.nodes[c].author.login) {
+              pullRequest.comments.nodes[c].author.id = pullRequest.participants.nodes[index].id;
               encontrado = true;
-            } else if (index == this.repository.pullRequest.participants.totalCount) {
+            } else if (index == pullRequest.participants.totalCount) {
               encontrado = true;
             }
             index++;
           }
         }
+        //agregamos id a los autores de Reviews
+        for (let i = 0; i < pullRequest.reviewThreads.totalCount; i++) {
+          for (let c = 0; c < pullRequest.reviewThreads.nodes[i].comments.totalCount; c++) {
+            let encontrado = false;
+            let index = 0;
+            while (!encontrado) {
+              if (pullRequest.participants.nodes[index].login == pullRequest.reviewThreads.nodes[i].comments.nodes[c].author.login) {
+                pullRequest.reviewThreads.nodes[i].comments.nodes[c].author.id = pullRequest.participants.nodes[index].id;
+                encontrado = true;
+              } else if (index == pullRequest.participants.totalCount) {
+                encontrado = true;
+              }
+              index++;
+            }
+          }
+        }
+      } catch (error) {
+        this.saltarPR = true;
       }
     },
     chartDataCoheGrupal() {
@@ -562,11 +572,20 @@ export default {
         .then(() => {
           if (this.repository.pullRequest.participants.totalCount > 1) {
             //Agrego informacion de IDs faltantes en el PR
-            this.agregarID();
+            this.agregarID(this.repository.pullRequest);
             //Llamo a hacer el conteo de Interacciones
             this.countMatrix = matrizConteoPR(this.repository.pullRequest, this.ListaMatrix);
             //LLamo a generar las estadisticas en base al conteo
             this.estadisticasPR();
+            if(this.saltarPR){
+              console.log("El PR Nº ", this.repository.pullRequest.number, " no fue exportado a Neo4J");
+              this.saltarPR = false;
+              try {
+                this.exportarNeo4j();
+              } catch (error) {
+                //console.log(error);
+              }
+            }
           } else {
             this.showSnackbar(
               "El Pull Request seleccionado no presenta interacciones",

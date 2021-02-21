@@ -194,6 +194,7 @@ export default {
       repository: "",
       estadisticas: [],
       ListaMatrix: [],
+      saltarPR: false,
       chartCoheGrupal: {
         labels: [],
         datasets: [
@@ -547,7 +548,6 @@ export default {
         autor: author,
       };
       this.estadisticas.push(estadisticaPR);
-      this.exportarNeo4j(pullRequest);
     },
     chartsDataGrupal() {
       //Obtengo la cohesión grupal
@@ -588,34 +588,26 @@ export default {
       this.chartTonoGrupal.datasets[0].data[1] = 100 - tonoGrupal;
     },
     agregarID(pullRequest) {
-      //Esta funcion agrega los ID faltantes al JSON de la consulta
-      pullRequest.participants.nodes.forEach((participant) => {
-        if (participant.login == pullRequest.author.login){
-          pullRequest.author.id = participant.id
-        }
-      });
-      //agregamos id a los autores de Comentarios
-      for (let c = 0; c < pullRequest.comments.totalCount; c++) {
+      try{
+        //Esta funcion agrega los ID faltantes al JSON de la consulta
         let encontrado = false;
         let index = 0;
         while (!encontrado) {
-          if (pullRequest.participants.nodes[index].login == pullRequest.comments.nodes[c].author.login) {
-            pullRequest.comments.nodes[c].author.id = pullRequest.participants.nodes[index].id
+          if (pullRequest.participants.nodes[index].login == pullRequest.author.login){
+            pullRequest.author.id = pullRequest.participants.nodes[index].id;
             encontrado = true;
-          } else if (index == pullRequest.participants.totalCount) {
+          } else if (index == pullRequest.participants.totalCount){
             encontrado = true;
           }
           index++;
         }
-      }
-      //agregamos id a los autores de Reviews
-      for (let i = 0; i < pullRequest.reviewThreads.totalCount; i++) {
-        for (let c = 0; c < pullRequest.reviewThreads.nodes[i].comments.totalCount; c++) {
+        //agregamos id a los autores de Comentarios
+        for (let c = 0; c < pullRequest.comments.totalCount; c++) {
           let encontrado = false;
           let index = 0;
           while (!encontrado) {
-            if (pullRequest.participants.nodes[index].login == pullRequest.reviewThreads.nodes[i].comments.nodes[c].author.login) {
-              pullRequest.reviewThreads.nodes[i].comments.nodes[c].author.id = pullRequest.participants.nodes[index].id
+            if (pullRequest.participants.nodes[index].login == pullRequest.comments.nodes[c].author.login) {
+              pullRequest.comments.nodes[c].author.id = pullRequest.participants.nodes[index].id;
               encontrado = true;
             } else if (index == pullRequest.participants.totalCount) {
               encontrado = true;
@@ -623,6 +615,24 @@ export default {
             index++;
           }
         }
+        //agregamos id a los autores de Reviews
+        for (let i = 0; i < pullRequest.reviewThreads.totalCount; i++) {
+          for (let c = 0; c < pullRequest.reviewThreads.nodes[i].comments.totalCount; c++) {
+            let encontrado = false;
+            let index = 0;
+            while (!encontrado) {
+              if (pullRequest.participants.nodes[index].login == pullRequest.reviewThreads.nodes[i].comments.nodes[c].author.login) {
+                pullRequest.reviewThreads.nodes[i].comments.nodes[c].author.id = pullRequest.participants.nodes[index].id;
+                encontrado = true;
+              } else if (index == pullRequest.participants.totalCount) {
+                encontrado = true;
+              }
+              index++;
+            }
+          }
+        }
+      } catch (error) {
+        this.saltarPR = true;
       }
     },
     getRepoPRcant(search) {
@@ -864,9 +874,19 @@ export default {
             self.pullRequests.forEach((PR) => {
               //Agrego informacion de IDs faltantes en el PR
               self.agregarID(PR);
-              console.log(PR);
+              //Llamo a hacer el conteo de Interacciones
               self.countMatrix = matrizConteoPR(PR, self.ListaMatrix);
+              //LLamo a generar las estadisticas en base al conteo
               self.getEstadisticas(PR);
+              if(self.saltarPR){
+                self.saltarPR = false;
+                console.log("El PR Nº ", PR.number, " no fue exportado a Neo4J");
+                try {
+                  self.exportarNeo4j();
+                } catch (error) {
+                  //console.log(error);
+                }
+              }
             });
             //llamo a crear la tabla de estadisticas de cada persona
             self.estadisticasPersona = getParticipantesRepoStat(
