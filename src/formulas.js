@@ -442,7 +442,7 @@ export function polaridadFormula(cantPersonas, pullRequest) {
       });
   
 }*/
-export function matrizConteoPR(pullRequest) {
+export function matrizConteoPR(pullRequest, ListaMatrix) {
   //busco cantidad de participantes
   let cantPersonas = pullRequest.participants.totalCount;
 
@@ -463,6 +463,9 @@ export function matrizConteoPR(pullRequest) {
   //Primer Cometario
   for (i = 1; i < cantPersonas; i++) {
     countMatrix[0][i]++;
+    
+    let momentDate = moment(pullRequest.createdAt);
+    addListaMatrix(ListaMatrix, momentDate, 0, i);
     //crearArista(participants[0].id,participants[i].id);
     //crearArista(participants[0],participants[i]);
     //crearArista();
@@ -478,6 +481,9 @@ export function matrizConteoPR(pullRequest) {
         //console.log('Reacciona 1er comment: ', participants[e])
         //este participante le reacciono al creador del PR
         countMatrix[e][0]++;
+        
+        let momentDate = moment(element.createdAt);
+        addListaMatrix(ListaMatrix, momentDate, e, 0);
         //crearArista(participants[0].id,participants[i].id); mirar bien los parámetros
         encontrado = true;
       } else if (e == cantPersonas) {
@@ -540,6 +546,9 @@ export function matrizConteoPR(pullRequest) {
                 //console.log('Comenta: ', participants[c])
                 //console.log(' -Hacia: @' + participants[i])
                 countMatrix[c][i]++;
+
+                let momentDate = moment(element.createdAt);
+                addListaMatrix(ListaMatrix, momentDate, c, i);
                 arrobaBandera = true;
               }
             }
@@ -551,9 +560,13 @@ export function matrizConteoPR(pullRequest) {
               //console.log('Comenta: ', participants[c])
               //console.log(' -Hacia: Todos')
               for (i = 0; i < cantPersonas; i++) {
-                if (c != i)
+                if (c != i){
                   //si no es el que comenta
                   countMatrix[c][i]++;
+
+                  let momentDate = moment(element.createdAt);
+                  addListaMatrix(ListaMatrix, momentDate, c, i);
+                }
               }
             }
           }
@@ -580,6 +593,9 @@ export function matrizConteoPR(pullRequest) {
                   //console.log('  -Reacciona: ', participants[j])
                   reactionArray.push(participants[j]);
                   countMatrix[j][c]++;
+
+                  let momentDate = moment(element.createdAt);
+                  addListaMatrix(ListaMatrix, momentDate, j, c);
                 }
               } else if (j == cantPersonas) {
                 enc = true;
@@ -645,6 +661,9 @@ export function matrizConteoPR(pullRequest) {
               //console.log('Comenta: ', participants[posicion])
               //console.log(' -Hacia: @', participants[i])
               countMatrix[c][i]++;
+
+              let momentDate = moment(reviewComment.createdAt);
+              addListaMatrix(ListaMatrix, momentDate, c, i);
               arrobaBandera = true;
             }
           }
@@ -682,6 +701,9 @@ export function matrizConteoPR(pullRequest) {
         if (reviewArray.length == 1) {
           //el comentario va para el creador del PR
           countMatrix[posicion][0]++;
+
+          let momentDate = moment(reviewComment.createdAt);
+          addListaMatrix(ListaMatrix, momentDate, posicion, 0);
         } else {
           //sumo comentario de <<posicion>> a las personas, que ya comentaron en el mismo review
           if (!arrobaBandera && !commentNoValido) {
@@ -690,6 +712,9 @@ export function matrizConteoPR(pullRequest) {
               if (posicion != reviewArray[i].pos) {
                 //console.log('Comenta: ', participants[posicion], ' | (no@)Hacia: ', participants[reviewArray[i].pos])
                 countMatrix[posicion][reviewArray[i].pos]++;
+
+                let momentDate = moment(reviewComment.createdAt);
+                addListaMatrix(ListaMatrix, momentDate, posicion, reviewArray[i].pos);
               }
             }
           }
@@ -711,6 +736,9 @@ export function matrizConteoPR(pullRequest) {
               //console.log(' -Reacciona: ', reviewComment.reactions.nodes[index].user.login)
               //este participante le reacciono al creador del PR
               countMatrix[j][posicion]++;
+
+              let momentDate = moment(reviewComment.reactions.nodes[index].createdAt);
+              addListaMatrix(ListaMatrix, momentDate, j, posicion);
               enc = true;
               //} else if (j == cantPersonas)
               //  { enc = true }
@@ -725,5 +753,30 @@ export function matrizConteoPR(pullRequest) {
     }); //comentario de cada review
   }); //contar reviews
   //devuelvo la matriz de conteo del PR
+
+  //Testeo de ListaMatrix
+  /*var countListaMatrix = new Array(cantPersonas);
+  for (i = 0; i < cantPersonas; i++) {
+    countListaMatrix[i] = new Array(cantPersonas);
+    for (j = 0; j < cantPersonas; j++) {
+      countListaMatrix[i][j] = 0;
+    }
+  }
+  ListaMatrix.forEach(function(element){
+    countListaMatrix[element.emisor][element.receptor]++;
+  });
+  console.log(countMatrix);
+  console.log(countListaMatrix);*/
+
   return countMatrix;
 } //matrizConteoPR
+function addListaMatrix(ListaMatrix, momentDate, e, r){
+  let mensajeFecha = momentDate.format("YYYY-MM-DD");
+  let mensajeHora = momentDate.format("HH:mm:ss");
+  ListaMatrix.push({
+    emisor: e,
+    receptor: r,
+    fecha: mensajeFecha,
+    hora: mensajeHora,
+  });
+}
