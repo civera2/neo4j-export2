@@ -49,7 +49,7 @@
                     Tamaño PR (loc):
                     {{
                       this.repository.pullRequest.additions +
-                        this.repository.pullRequest.deletions
+                      this.repository.pullRequest.deletions
                     }}
                   </p>
                 </v-flex>
@@ -245,9 +245,8 @@ export default {
       variables: { owner: "flacket", name: "githubanalytic", number: 150 },
     },
   },
-  mounted: function() {
+  mounted: function () {
     this.$apollo.skipAll = true;
-    
   },
   methods: {
     showSnackbar(text, color, timeout) {
@@ -258,45 +257,52 @@ export default {
     },
     exportarNeo4j() {
       //const session = this.$neo4j.getSession();
-     // var matriz = this.countMatrix;
+      // var matriz = this.countMatrix;
 
-     // var participantes = this.repository.pullRequest.participants;
-     // var cantPersonas = this.repository.pullRequest.participants.totalCount;
-      var prid= this.repository.pullRequest.id;
-      var url= this.repository.pullRequest.url;
-
+      // var participantes = this.repository.pullRequest.participants;
+      // var cantPersonas = this.repository.pullRequest.participants.totalCount;
+      var prid = this.repository.pullRequest.id;
+      var url = this.repository.pullRequest.url;
+      
       //let participantes = new Array();
       /*this.repository.pullRequest.participants.nodes.forEach(function(element) {
       participantes.push(element.login);
        //participants.push(element.id);
        });*/
       //console.log("matriz",this.countMatrix);
-       
-       //const personName = 'Benji';
-      this.ListaMatrix.forEach(item => {
-      const session = this.$neo4j.getSession();
-      console.log("emisor", item.emisor);
-            session
-              /*.run(
+      //const personName = 'Benji';
+      this.ListaMatrix.forEach((item) => {
+        console.log("emisor: ", this.repository.pullRequest.participants.nodes[item.emisor].id);
+        const session = this.$neo4j.getSession();
+        session
+          /*.run(
                 "Create (a:Participante{id:$name})-[:INTERACTUA]->(b:Participante{id:$name2})",{ name: emisor, name2: receptor }
               )*/
-              //.run("Create (n:Persona{nombre:$name}) return n",{name:item.id})
-              //.run("CREATE (a:Personas {name: $name}) RETURN a", {name:item.emisor})
-              //.run("Create (a:Personas{name:$name})-[:SE_CREAN]->(b:Personas{name:$name2})", {name: personName,name2:item.emisor})
-              .run("OPTIONAL MATCH (a:Desarrollador),(b:Desarrollador) WHERE a.id = $name AND   b.id=$name2 CREATE (a)-[r:INTERACTUA{id:$prid,url:$url,fecha:$fecha,hora:$hora}]->(b) RETURN a,b", { name: item.emisor, name2: item.receptor,prid: prid,url: url,fecha: item.fecha,hora: item.hora})
-             .then((res) => {
-                //console.log(res.records[0].get("n.nombre"));
-                console.log("Nodo creado", res);
-              })
-              //.then(() => {
-              //  session.close();
-              //});
-
-      })
-/*      for (let i = 0; i < cantPersonas; i++) {
+          //.run("Create (n:Persona{nombre:$name}) return n",{name:item.id})
+          //.run("CREATE (a:Personas {name: $name}) RETURN a", {name:item.emisor})
+          //.run("Create (a:Personas{name:$name})-[:SE_CREAN]->(b:Personas{name:$name2})", {name: personName,name2:item.emisor})
+          .run(
+            "OPTIONAL MATCH (a:Desarrollador),(b:Desarrollador) WHERE a.id = $name AND   b.id=$name2 CREATE (a)-[r:INTERACTUA{id:$prid,url:$url,fecha:$fecha,hora:$hora}]->(b) RETURN a,b",
+            {
+              name: this.repository.pullRequest.participants.nodes[item.emisor].id,
+              name2: this.repository.pullRequest.participants.nodes[item.receptor].id,
+              prid: prid,
+              url: url,
+              fecha: item.fecha,
+              hora: item.hora,
+            }
+          )
+          .then((res) => {
+            //console.log(res.records[0].get("n.nombre"));
+            console.log("Nodo creado", res);
+          });
+        //.then(() => {
+        //  session.close();
+        //});
+      });
+      /*for (let i = 0; i < cantPersonas; i++) {
         var emisor = participantes.nodes[i].login;
         for (let j = 0; j < cantPersonas; j++) {
-          
           var receptor = participantes.nodes[j].login;
           //console.log("matriz",matriz[i][j],"emisor",emisor,"receptor",receptor);
           for (let k = 0; k < matriz[i][j]; k++) {
@@ -445,15 +451,15 @@ export default {
       }
     },
     agregarID(pullRequest) {
-      try{
+      try {
         //Esta funcion agrega los ID faltantes al JSON de la consulta
         let encontrado = false;
         let index = 0;
         while (!encontrado) {
-          if (pullRequest.participants.nodes[index].login == pullRequest.author.login){
+          if (pullRequest.participants.nodes[index].login == pullRequest.author.login) {
             pullRequest.author.id = pullRequest.participants.nodes[index].id;
             encontrado = true;
-          } else if (index == pullRequest.participants.totalCount){
+          } else if (index == pullRequest.participants.totalCount) {
             encontrado = true;
           }
           index++;
@@ -598,17 +604,17 @@ export default {
             //Agrego informacion de IDs faltantes en el PR
             this.agregarID(this.repository.pullRequest);
             //Llamo a hacer el conteo de Interacciones
-            this.countMatrix = matrizConteoPR(this.repository.pullRequest, this.ListaMatrix);
+            this.countMatrix = matrizConteoPR(
+              this.repository.pullRequest,
+              this.ListaMatrix
+            );
             //LLamo a generar las estadisticas en base al conteo
             this.estadisticasPR();
-            console.log("Pasó por acá",this.saltarPR);
-            if(this.saltarPR==true){
+            if (this.saltarPR == true) {
               console.log("El PR Nº ", this.repository.pullRequest.number, " no fue exportado a Neo4J");
               this.saltarPR = false;
-            }
-             else {
+            } else {
               try {
-                
                 this.exportarNeo4j();
               } catch (error) {
                 console.log(error);
