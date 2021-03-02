@@ -43,9 +43,9 @@ export default {
     return {
       protocol: "bolt",
       host: "localhost",
-      port: 11005,
+      port: 7687,
       username: "neo4j",
-      password: "123",
+      password: "artsy21",
     };
   },
   methods: {

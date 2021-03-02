@@ -258,10 +258,11 @@ export default {
     },
     exportarNeo4j() {
       //const session = this.$neo4j.getSession();
-      var matriz = this.countMatrix;
-      var participantes = this.repository.pullRequest.participants;
-      var cantPersonas = this.repository.pullRequest.participants.totalCount;
-      var id= this.repository.pullRequest.id;
+     // var matriz = this.countMatrix;
+
+     // var participantes = this.repository.pullRequest.participants;
+     // var cantPersonas = this.repository.pullRequest.participants.totalCount;
+      var prid= this.repository.pullRequest.id;
       var url= this.repository.pullRequest.url;
 
       //let participantes = new Array();
@@ -270,7 +271,29 @@ export default {
        //participants.push(element.id);
        });*/
       //console.log("matriz",this.countMatrix);
-      for (let i = 0; i < cantPersonas; i++) {
+       
+       //const personName = 'Benji';
+      this.ListaMatrix.forEach(item => {
+      const session = this.$neo4j.getSession();
+      console.log("emisor", item.emisor);
+            session
+              /*.run(
+                "Create (a:Participante{id:$name})-[:INTERACTUA]->(b:Participante{id:$name2})",{ name: emisor, name2: receptor }
+              )*/
+              //.run("Create (n:Persona{nombre:$name}) return n",{name:item.id})
+              //.run("CREATE (a:Personas {name: $name}) RETURN a", {name:item.emisor})
+              //.run("Create (a:Personas{name:$name})-[:SE_CREAN]->(b:Personas{name:$name2})", {name: personName,name2:item.emisor})
+              .run("OPTIONAL MATCH (a:Desarrollador),(b:Desarrollador) WHERE a.id = $name AND   b.id=$name2 CREATE (a)-[r:INTERACTUA{id:$prid,url:$url,fecha:$fecha,hora:$hora}]->(b) RETURN a,b", { name: item.emisor, name2: item.receptor,prid: prid,url: url,fecha: item.fecha,hora: item.hora})
+             .then((res) => {
+                //console.log(res.records[0].get("n.nombre"));
+                console.log("Nodo creado", res);
+              })
+              //.then(() => {
+              //  session.close();
+              //});
+
+      })
+/*      for (let i = 0; i < cantPersonas; i++) {
         var emisor = participantes.nodes[i].login;
         for (let j = 0; j < cantPersonas; j++) {
           
@@ -281,9 +304,9 @@ export default {
             //var receptor = participantes.nodes[j].login;
             if(matriz[i][j]!=0){const session = this.$neo4j.getSession();
             session
-              /*.run(
+              .run(
                 "Create (a:Participante{id:$name})-[:INTERACTUA]->(b:Participante{id:$name2})",{ name: emisor, name2: receptor }
-              )*/
+              )
               .run("OPTIONAL MATCH (a:Participante),(b:Participante) WHERE a.id = $name AND   b.id=$name2 CREATE (a)-[r:INTERACTUA{id:$id,url:$url}]->(b) RETURN a,b", { name: emisor, name2: receptor,id:id,url:url})
               .then((res) => {
                 //console.log(res.records[0].get("n.nombre"));
@@ -296,6 +319,7 @@ export default {
           }
         }
       }
+      */
     },
     csvExport() {
       //Creo el archivo CSV
@@ -577,13 +601,17 @@ export default {
             this.countMatrix = matrizConteoPR(this.repository.pullRequest, this.ListaMatrix);
             //LLamo a generar las estadisticas en base al conteo
             this.estadisticasPR();
-            if(this.saltarPR){
+            console.log("Pasó por acá",this.saltarPR);
+            if(this.saltarPR==true){
               console.log("El PR Nº ", this.repository.pullRequest.number, " no fue exportado a Neo4J");
               this.saltarPR = false;
+            }
+             else {
               try {
+                
                 this.exportarNeo4j();
               } catch (error) {
-                //console.log(error);
+                console.log(error);
               }
             }
           } else {
