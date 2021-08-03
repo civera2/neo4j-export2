@@ -45,7 +45,7 @@ export default {
       host: "localhost",
       port: 7687,
       username: "neo4j",
-      password: "artsy21",
+      password: "artsy2",
     };
   },
   methods: {

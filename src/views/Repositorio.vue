@@ -429,6 +429,16 @@ export default {
       this.ListaMatrix.forEach((item) => {
        // console.log("emisor: ", pullRequest.participants.nodes[item.emisor].id);
         const session = this.$neo4j.getSession();
+        //21-7-21
+      var polar;
+      //var num = Math.random() * (2- 0);
+      var x = Math.floor(Math.random()*3);
+      switch (x)
+      {
+      case 0: polar='Positivo'; break;
+      case 1: polar='Negativo'; break;
+      case 2: polar='Neutro'; break;
+      }
         session
           /*.run(
                 "Create (a:Participante{id:$name})-[:INTERACTUA]->(b:Participante{id:$name2})",{ name: emisor, name2: receptor }
@@ -437,7 +447,7 @@ export default {
           //.run("CREATE (a:Personas {name: $name}) RETURN a", {name:item.emisor})
           //.run("Create (a:Personas{name:$name})-[:SE_CREAN]->(b:Personas{name:$name2})", {name: personName,name2:item.emisor})
           .run(
-            "OPTIONAL MATCH (a:Desarrollador),(b:Desarrollador) WHERE a.id = $name AND   b.id=$name2 CREATE (a)-[r:INTERACTUA{id:$prid,url:$url,fecha:$fecha,hora:$hora}]->(b) RETURN a,b",
+            "OPTIONAL MATCH (a:Desarrollador),(b:Desarrollador) WHERE a.id = $name AND   b.id=$name2 CREATE (a)-[r:INTERACTUA{id:$prid,url:$url,fecha:$fecha,hora:$hora,polar:$polar}]->(b) RETURN a,b",
             {
               name: pullRequest.participants.nodes[item.emisor].id,
               name2: pullRequest.participants.nodes[item.receptor].id,
@@ -445,6 +455,7 @@ export default {
               url: url,
               fecha: item.fecha,
               hora: item.hora,
+              polar:polar
             }
           )
           .then((res) => {
