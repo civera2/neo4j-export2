@@ -427,7 +427,7 @@ export default {
         }
       }*/
       this.ListaMatrix.forEach((item) => {
-       // console.log("emisor: ", pullRequest.participants.nodes[item.emisor].id);
+       console.log("Cartel URL: ", url,"fecha",item.fecha);
         const session = this.$neo4j.getSession();
         //21-7-21
       var polar;
@@ -447,7 +447,7 @@ export default {
           //.run("CREATE (a:Personas {name: $name}) RETURN a", {name:item.emisor})
           //.run("Create (a:Personas{name:$name})-[:SE_CREAN]->(b:Personas{name:$name2})", {name: personName,name2:item.emisor})
           .run(
-            "OPTIONAL MATCH (a:Desarrollador),(b:Desarrollador) WHERE a.id = $name AND   b.id=$name2 CREATE (a)-[r:INTERACTUA{id:$prid,url:$url,fecha:$fecha,hora:$hora,polar:$polar}]->(b) RETURN a,b",
+            "OPTIONAL MATCH (a:Desarrollador),(b:Desarrollador) WHERE a.id = $name AND   b.id=$name2 CREATE (a)-[r:INTERACTUANDOtres{id:$prid,url:$url,fecha:$fecha,hora:$hora,polar:$polar}]->(b) RETURN a,b",
             {
               name: pullRequest.participants.nodes[item.emisor].id,
               name2: pullRequest.participants.nodes[item.receptor].id,

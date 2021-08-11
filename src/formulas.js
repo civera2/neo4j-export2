@@ -463,7 +463,8 @@ export function matrizConteoPR(pullRequest, ListaMatrix) {
   //Primer Cometario
   for (i = 1; i < cantPersonas; i++) {
     countMatrix[0][i]++;
-    
+    console.log("Fecha de creación:",pullRequest.createdAt);
+    console.log("URL:",pullRequest.url);
     let momentDate = moment(pullRequest.createdAt);
     addListaMatrix(ListaMatrix, momentDate, 0, i);
     //crearArista(participants[0].id,participants[i].id);

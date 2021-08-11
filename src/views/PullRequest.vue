@@ -282,7 +282,7 @@ export default {
           //.run("CREATE (a:Personas {name: $name}) RETURN a", {name:item.emisor})
           //.run("Create (a:Personas{name:$name})-[:SE_CREAN]->(b:Personas{name:$name2})", {name: personName,name2:item.emisor})
           .run(
-            "OPTIONAL MATCH (a:Desarrollador),(b:Desarrollador) WHERE a.id = $name AND   b.id=$name2 CREATE (a)-[r:INTERACTUA{id:$prid,url:$url,fecha:$fecha,hora:$hora}]->(b) RETURN a,b",
+            "OPTIONAL MATCH (a:Desarrollador),(b:Desarrollador) WHERE a.id = $name AND   b.id=$name2 CREATE (a)-[r:INTERACTUAAAAA{id:$prid,url:$url,fecha:$fecha,hora:$hora}]->(b) RETURN a,b",
             {
               name: this.repository.pullRequest.participants.nodes[item.emisor].id,
               name2: this.repository.pullRequest.participants.nodes[item.receptor].id,
