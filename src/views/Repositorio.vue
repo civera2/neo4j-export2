@@ -931,6 +931,7 @@ export default {
                   console.log(error);
                 }
               }
+              self.ListaMatrix = [];
             });
             //llamo a crear la tabla de estadisticas de cada persona
             self.estadisticasPersona = getParticipantesRepoStat(
