@@ -925,11 +925,10 @@ export default {
               if(self.saltarPR == true){
                 self.saltarPR = false;
                 console.log("El PR Nº ", PR.number, " no fue exportado a Neo4J");
-                try {
-                  self.exportarNeo4j(PR);
-                } catch (error) {
-                  console.log(error);
-                }
+              } else try {
+                self.exportarNeo4j(PR);
+              } catch (error) {
+                console.log(error);
               }
               self.ListaMatrix = [];
             });
